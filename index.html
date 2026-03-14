@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MMDB – Murat's Movie Database</title>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="MMDB"/>
+<meta name="theme-color" content="#1D9E75"/>
+<link rel="apple-touch-icon" href="mmdb_icon.svg"/>
+<link rel="icon" type="image/svg+xml" href="mmdb_icon.svg"/>
+<link rel="manifest" href="manifest.json"/>
+<style>
+html,body{margin:0;padding:0;background:#0a0a0a;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+*{box-sizing:border-box;}
+.app{padding:.75rem;width:100%;max-width:100%;background:#0a0a0a;min-height:100vh;}
+@media(min-width:600px){.app{padding:1rem 1.5rem;max-width:820px;margin:0 auto;}}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-top:.25rem;flex-wrap:wrap;gap:8px;}
+.brand-title{font-size:22px;font-weight:600;color:#f0f0f0;letter-spacing:-.3px;}
+.brand-sub{font-size:11px;color:#555;letter-spacing:.5px;}
+.header-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.lang-select{background:#1a1a1a;border:.5px solid #2a2a2a;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;color:#e8e8e8;outline:none;}
+.lang-select:focus{border-color:#1D9E75;}
+.icon-btn{background:#1a1a1a;border:.5px solid #2a2a2a;border-radius:8px;padding:6px 11px;font-size:12px;cursor:pointer;color:#aaa;display:flex;align-items:center;gap:4px;}
+.icon-btn:hover{background:#222;color:#e8e8e8;}
+.add-btn{background:#1a1a1a;border:.5px solid #2a2a2a;border-radius:8px;padding:7px 15px;font-size:13px;cursor:pointer;color:#e8e8e8;}
+.add-btn:hover{background:#222;}
+.nav-tabs{display:flex;gap:4px;margin-bottom:1rem;}
+.nav-tab{padding:6px 15px;font-size:13px;font-weight:500;cursor:pointer;border:.5px solid #222;border-radius:8px;background:transparent;color:#666;}
+.nav-tab.active{background:#0f3028;color:#1D9E75;border-color:#1D9E75;}
+.tabs{display:flex;margin-bottom:1rem;border-bottom:1px solid #1e1e1e;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tab{padding:8px 14px;font-size:13px;cursor:pointer;color:#555;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;flex-shrink:0;}
+.tab.active{color:#1D9E75;font-weight:500;border-bottom-color:#1D9E75;}
+.tab:hover:not(.active){color:#bbb;}
+.tab-count{font-size:11px;background:#1a1a1a;border-radius:10px;padding:1px 6px;margin-left:4px;color:#555;}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem;}
+@media(min-width:480px){.stats{grid-template-columns:repeat(4,1fr);}}
+.stat-card{background:#111;border:.5px solid #222;border-radius:8px;padding:10px 12px;}
+.stat-label{font-size:11px;color:#555;margin-bottom:3px;}
+.stat-val{font-size:22px;font-weight:500;color:#f0f0f0;}
+.search-bar{position:relative;margin-bottom:8px;}
+.search-bar input{width:100%;padding:9px 12px 9px 36px;border-radius:8px;border:.5px solid #222;font-size:14px;background:#111;color:#e8e8e8;}
+.search-bar input::placeholder{color:#444;}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#444;font-size:15px;pointer-events:none;}
+.toolbar{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;}
+.toolbar select{font-size:12px;padding:5px 8px;border-radius:8px;border:.5px solid #222;background:#111;color:#e8e8e8;cursor:pointer;}
+.score-filter-wrap{display:flex;align-items:center;gap:5px;}
+.score-filter-label{font-size:12px;color:#555;white-space:nowrap;}
+.score-val{font-size:12px;font-weight:500;color:#e8e8e8;min-width:24px;}
+.score-clear{font-size:11px;color:#555;cursor:pointer;background:none;border:none;padding:2px 5px;border-radius:4px;}
+.filters{display:flex;gap:5px;margin-bottom:.8rem;flex-wrap:wrap;}
+.filter-btn{padding:4px 11px;border-radius:20px;border:.5px solid #222;font-size:12px;cursor:pointer;background:transparent;color:#777;white-space:nowrap;}
+.filter-btn.active{background:#1a1a1a;color:#f0f0f0;border-color:#444;font-weight:500;}
+.fav-filter{padding:4px 11px;border-radius:20px;border:.5px solid #222;font-size:12px;cursor:pointer;background:transparent;color:#777;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.fav-filter.active{background:#1e0f2a;color:#b06fd8;border-color:#8A4FBF;font-weight:500;}
+.cards{display:flex;flex-direction:column;gap:6px;}
+.card{background:#111;border:.5px solid #222;border-radius:10px;padding:7px 10px;display:flex;align-items:center;gap:6px;cursor:grab;transition:border-color .15s,opacity .15s;}
+.card:active{cursor:grabbing;}
+.card.fav-card{border-color:#8A4FBF;}
+.card.drag-over{border-color:#1D9E75;border-style:dashed;}
+.card.dragging{opacity:.4;}
+.c-drag{color:#333;font-size:13px;cursor:grab;flex-shrink:0;user-select:none;}
+.c-badge{flex:0 0 40px;}
+.c-info{flex:1;min-width:0;}
+.c-stars{flex:0 0 74px;}
+.c-status{flex:0 0 82px;text-align:center;}
+.c-fav{flex:0 0 26px;display:flex;justify-content:center;}
+.c-del{flex:0 0 26px;display:flex;justify-content:center;}
+.type-badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 5px;border-radius:4px;white-space:nowrap;}
+.badge-film{background:#0d1f33;color:#5DCAA5;}
+.badge-dizi{background:#0f2820;color:#5DCAA5;}
+.badge-anime{background:#1a1030;color:#9F77DD;}
+.card-name{font-size:14px;font-weight:500;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-sub{font-size:11px;color:#555;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.star-block{display:flex;flex-direction:column;gap:2px;}
+.star-row{display:flex;gap:1px;}
+.star-btn{background:none;border:none;cursor:pointer;padding:0;width:13px;height:13px;min-width:13px;max-width:13px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.star-btn svg{width:13px;height:13px;display:block;flex-shrink:0;}
+.score-num{font-size:10px;color:#555;margin-top:1px;}
+.status-badge{display:inline-block;font-size:10px;padding:2px 5px;border-radius:4px;white-space:nowrap;}
+.s-izlendi{background:#0f2820;color:#1D9E75;}
+.s-izleniyor{background:#0f2820;color:#5DCAA5;}
+.s-liste{background:#1a1a1a;color:#555;}
+.fav-btn{background:none;border:none;cursor:pointer;padding:2px;display:flex;align-items:center;justify-content:center;}
+.del-btn{background:none;border:none;cursor:pointer;padding:2px;display:flex;align-items:center;justify-content:center;border-radius:5px;transition:background .15s;}
+.del-btn:hover{background:#3a0f0f;}
+.del-btn:hover .trash-icon{stroke:#e05555;}
+.trash-icon{transition:stroke .15s;}
+.drag-hint-txt{font-size:10px;color:#2a2a2a;margin-top:6px;text-align:center;}
+.stat-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:1.5rem;}
+@media(min-width:520px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-box{background:#111;border:.5px solid #222;border-radius:12px;padding:.9rem;}
+.stat-box h3{font-size:12px;color:#666;margin-bottom:10px;font-weight:400;}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.bar-label{font-size:11px;color:#888;width:70px;flex-shrink:0;}
+.bar-track{flex:1;background:#1a1a1a;border-radius:4px;height:7px;overflow:hidden;}
+.bar-fill{height:7px;border-radius:4px;transition:width .4s;}
+.bar-val{font-size:11px;color:#555;min-width:20px;text-align:right;}
+.top-list{display:flex;flex-direction:column;gap:6px;}
+.top-item{display:flex;align-items:center;gap:8px;}
+.top-rank{font-size:11px;color:#444;width:14px;flex-shrink:0;}
+.top-name{font-size:12px;color:#e8e8e8;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.top-score{font-size:12px;color:#1D9E75;font-weight:500;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;align-items:center;justify-content:center;padding:1rem;}
+.modal-bg.open{display:flex;}
+.modal{background:#111;border-radius:12px;border:.5px solid #2a2a2a;padding:1.25rem;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;}
+.modal h2{font-size:17px;font-weight:500;margin-bottom:1rem;color:#f0f0f0;}
+.field{margin-bottom:10px;}
+.field label{font-size:12px;color:#777;display:block;margin-bottom:4px;}
+.field input,.field select{width:100%;font-size:14px;padding:8px 10px;border-radius:8px;border:.5px solid #2a2a2a;background:#1a1a1a;color:#e8e8e8;}
+.rating-wrap{display:flex;align-items:center;gap:10px;}
+.rating-wrap input[type=range]{flex:1;accent-color:#1D9E75;}
+.rating-val{font-size:15px;font-weight:500;color:#e8e8e8;min-width:34px;}
+.modal-actions{display:flex;gap:8px;margin-top:1rem;}
+.btn-primary{flex:1;padding:9px;background:#1a1a1a;border:.5px solid #2a2a2a;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#e8e8e8;}
+.btn-primary:hover{background:#222;}
+.btn-cancel{padding:9px 14px;background:none;border:none;font-size:14px;cursor:pointer;color:#555;}
+.hint{font-size:11px;color:#444;margin-top:4px;}
+.empty{text-align:center;padding:2rem;color:#444;font-size:14px;}
+.confirm-modal{background:#161616;border-radius:12px;border:.5px solid #2a2a2a;padding:1.25rem;width:100%;max-width:320px;}
+.confirm-modal h3{font-size:15px;font-weight:500;color:#f0f0f0;margin-bottom:8px;}
+.confirm-modal p{font-size:13px;color:#888;margin-bottom:1.2rem;line-height:1.6;}
+.confirm-modal p strong{color:#e8e8e8;}
+.confirm-actions{display:flex;gap:8px;}
+.btn-delete{flex:1;padding:9px;background:#2a0d0d;border:.5px solid #5a1a1a;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:#e05555;}
+.btn-delete:hover{background:#3a1010;}
+.btn-keep{flex:1;padding:9px;background:#1a1a1a;border:.5px solid #2a2a2a;border-radius:8px;font-size:14px;cursor:pointer;color:#aaa;}
+.btn-keep:hover{background:#222;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="brand">
+      <div class="brand-title">MMDB</div>
+      <div class="brand-sub" id="brand-sub">Murat's Movie Database</div>
+    </div>
+    <div class="header-right">
+      <select class="lang-select" id="lang-select" onchange="setLang(this.value)">
+        <option value="tr">🇹🇷 TR</option>
+        <option value="en">🇬🇧 EN</option>
+        <option value="fr">🇫🇷 FR</option>
+        <option value="ja">🇯🇵 JP</option>
+      </select>
+      <button class="icon-btn" onclick="exportData()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span id="lbl-export">Dışa</span>
+      </button>
+      <label class="icon-btn" style="cursor:pointer;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10" transform="rotate(180 12 12)"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span id="lbl-import">İçe</span>
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none"/>
+      </label>
+      <button class="add-btn" id="add-btn" onclick="openAddModal()">+ Ekle</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="setNavTab('list',this)">📋 <span id="lbl-navlist">Liste</span></button>
+    <button class="nav-tab" onclick="setNavTab('stats',this)">📊 <span id="lbl-navstats">İstatistikler</span></button>
+  </div>
+
+  <div id="list-page">
+    <div class="tabs">
+      <button class="tab active" onclick="setTab('hepsi',this)" id="tab-hepsi">Hepsi <span class="tab-count" id="tc-hepsi">0</span></button>
+      <button class="tab" onclick="setTab('film',this)" id="tab-film">Film <span class="tab-count" id="tc-film">0</span></button>
+      <button class="tab" onclick="setTab('dizi',this)" id="tab-dizi">Dizi <span class="tab-count" id="tc-dizi">0</span></button>
+      <button class="tab" onclick="setTab('anime',this)" id="tab-anime">Anime <span class="tab-count" id="tc-anime">0</span></button>
+    </div>
+    <div class="stats" id="stats-row"></div>
+    <div class="search-bar">
+      <span class="search-icon">&#9906;</span>
+      <input id="search" placeholder="Ara..." oninput="render()"/>
+    </div>
+    <div class="toolbar">
+      <div class="score-filter-wrap">
+        <span class="score-filter-label" id="lbl-minscore">Min puan:</span>
+        <input type="range" id="score-min" min="0" max="10" step="0.5" value="0" oninput="onScoreFilter()" style="width:70px;accent-color:#1D9E75;"/>
+        <span class="score-val" id="score-min-val">—</span>
+        <button class="score-clear" id="score-clear" onclick="clearScoreFilter()" style="display:none">✕</button>
+      </div>
+      <select id="sort-select" onchange="render()" style="margin-left:auto;"></select>
+    </div>
+    <div class="filters" id="filter-bar"></div>
+    <div class="cards" id="card-list"></div>
+    <div class="drag-hint-txt" id="drag-hint">⠿ Sürükleyerek sıralayabilirsin</div>
+  </div>
+
+  <div id="stats-page" style="display:none;">
+    <div class="stat-grid">
+      <div class="stat-box"><h3 id="lbl-bytype">Türe göre dağılım</h3><div id="chart-type"></div></div>
+      <div class="stat-box"><h3 id="lbl-bystatus">Duruma göre dağılım</h3><div id="chart-status"></div></div>
+      <div class="stat-box"><h3 id="lbl-top5">En yüksek puanlı 5</h3><div class="top-list" id="chart-top5"></div></div>
+      <div class="stat-box"><h3 id="lbl-scoredist">Puan dağılımı</h3><div id="chart-scoredist"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Yeni içerik ekle</h2>
+    <div class="field" id="type-field">
+      <label id="lbl-type">Tür</label>
+      <select id="f-type"><option value="film" id="opt-film">Film</option><option value="dizi" id="opt-dizi">Dizi</option><option value="anime">Anime</option></select>
+    </div>
+    <div class="field"><label id="lbl-name">Ad</label><input id="f-name"/></div>
+    <div class="field"><label id="lbl-year">Yıl</label><input id="f-year" type="number" placeholder="2024" min="1900" max="2030"/></div>
+    <div class="field">
+      <label id="lbl-status">Durum</label>
+      <select id="f-status"><option value="izlendi" id="opt-watched">İzlendi</option><option value="izleniyor" id="opt-watching">İzleniyor</option><option value="liste" id="opt-watchlist">İzleme Listesi</option></select>
+    </div>
+    <div class="field">
+      <label id="lbl-rating">MMDB Puanı (0–10)</label>
+      <div class="rating-wrap">
+        <input type="range" id="f-rating" min="0" max="10" step="0.5" value="0" oninput="document.getElementById('f-rv').textContent=parseFloat(this.value).toFixed(1)"/>
+        <span class="rating-val" id="f-rv">0.0</span>
+      </div>
+      <div class="hint" id="lbl-hint">1 tıkla = tam · 2 tıkla = yarım</div>
+    </div>
+    <div class="field"><label id="lbl-note">Not</label><input id="f-note"/></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()" id="btn-cancel">İptal</button>
+      <button class="btn-primary" onclick="saveModal()" id="btn-add">Ekle</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<div class="modal-bg" id="confirm-modal">
+  <div class="confirm-modal">
+    <h3 id="confirm-title">Emin misin?</h3>
+    <p id="confirm-body"></p>
+    <div class="confirm-actions">
+      <button class="btn-keep" id="btn-keep" onclick="closeConfirm()">Vazgeç</button>
+      <button class="btn-delete" id="btn-del-ok" onclick="confirmDelete()">Sil</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TEAL="#1D9E75",TEMPTY="#1a3d30",HEART_ON="#8A4FBF",HEART_OFF="#444";
+let pendingDeleteId=null,editingId=null;
+const T={
+  tr:{sub:"Murat's Movie Database",addBtn:"+ Ekle",addFilm:"+ Film Ekle",addDizi:"+ Dizi Ekle",addAnime:"+ Anime Ekle",tabAll:"Hepsi",tabFilm:"Film",tabDizi:"Dizi",tabAnime:"Anime",stTotal:"Toplam",stAvg:"Ort.",stFav:"Favori",stWatched:"İzlendi",ph:"Ara...",minSc:"Min puan:",sDD:"Eklenme ↓",sDA:"Eklenme ↑",sAZ:"A→Z",sZA:"Z→A",sRD:"Puan ↓",sRA:"Puan ↑",fAll:"Tümü",fWatched:"İzlendi",fWatching:"İzleniyor",fList:"İzleme Listesi",fFav:"Favoriler",mTitle:"Yeni içerik ekle",mTitleEdit:"Düzenle",lType:"Tür",oFilm:"Film",oDizi:"Dizi",lName:"Ad",lYear:"Yıl",lStatus:"Durum",oWatched:"İzlendi",oWatching:"İzleniyor",oList:"İzleme Listesi",lRating:"MMDB Puanı (0–10)",hint:"1 tıkla = tam · 2 tıkla = yarım",lNote:"Not",notePh:"Kısa not...",cancel:"İptal",add:"Ekle",save:"Kaydet",empty:"Sonuç bulunamadı.",sW:"İzlendi",sWi:"İzleniyor",sL:"İzleme Listesi",badge:{film:"film",dizi:"dizi",anime:"anime"},cTitle:"Emin misin?",cBody:'"{name}" silinecek.',cDel:"Sil",cKeep:"Vazgeç",navList:"Liste",navStats:"İstatistikler",export:"Dışa",import:"İçe",byType:"Türe göre",byStatus:"Duruma göre",top5:"En iyi 5",scoreDist:"Puan dağılımı",dragHint:"⠿ Sürükleyerek sıralayabilirsin"},
+  en:{sub:"Murat's Movie Database",addBtn:"+ Add",addFilm:"+ Add Movie",addDizi:"+ Add Series",addAnime:"+ Add Anime",tabAll:"All",tabFilm:"Movies",tabDizi:"Series",tabAnime:"Anime",stTotal:"Total",stAvg:"Avg.",stFav:"Favorites",stWatched:"Watched",ph:"Search...",minSc:"Min score:",sDD:"Added ↓",sDA:"Added ↑",sAZ:"A→Z",sZA:"Z→A",sRD:"Score ↓",sRA:"Score ↑",fAll:"All",fWatched:"Watched",fWatching:"Watching",fList:"Watchlist",fFav:"Favorites",mTitle:"Add new title",mTitleEdit:"Edit",lType:"Type",oFilm:"Movie",oDizi:"Series",lName:"Title",lYear:"Year",lStatus:"Status",oWatched:"Watched",oWatching:"Watching",oList:"Watchlist",lRating:"MMDB Score (0–10)",hint:"Single click = full · Double click = half",lNote:"Note",notePh:"Short note...",cancel:"Cancel",add:"Add",save:"Save",empty:"No results.",sW:"Watched",sWi:"Watching",sL:"Watchlist",badge:{film:"movie",dizi:"series",anime:"anime"},cTitle:"Are you sure?",cBody:'"{name}" will be removed.',cDel:"Delete",cKeep:"Cancel",navList:"List",navStats:"Statistics",export:"Export",import:"Import",byType:"By type",byStatus:"By status",top5:"Top 5",scoreDist:"Score dist.",dragHint:"⠿ Drag to reorder"},
+  fr:{sub:"Murat's Movie Database",addBtn:"+ Ajouter",addFilm:"+ Film",addDizi:"+ Série",addAnime:"+ Anime",tabAll:"Tout",tabFilm:"Films",tabDizi:"Séries",tabAnime:"Anime",stTotal:"Total",stAvg:"Moy.",stFav:"Favoris",stWatched:"Vus",ph:"Rechercher...",minSc:"Note min:",sDD:"Ajouté ↓",sDA:"Ajouté ↑",sAZ:"A→Z",sZA:"Z→A",sRD:"Note ↓",sRA:"Note ↑",fAll:"Tout",fWatched:"Vu",fWatching:"En cours",fList:"À voir",fFav:"Favoris",mTitle:"Ajouter",mTitleEdit:"Modifier",lType:"Type",oFilm:"Film",oDizi:"Série",lName:"Titre",lYear:"Année",lStatus:"Statut",oWatched:"Vu",oWatching:"En cours",oList:"À voir",lRating:"Note MMDB (0–10)",hint:"1 clic = entier · 2 = demi",lNote:"Note",notePh:"Note courte...",cancel:"Annuler",add:"Ajouter",save:"Enregistrer",empty:"Aucun résultat.",sW:"Vu",sWi:"En cours",sL:"À voir",badge:{film:"film",dizi:"série",anime:"anime"},cTitle:"Êtes-vous sûr ?",cBody:'"{name}" sera supprimé.',cDel:"Supprimer",cKeep:"Annuler",navList:"Liste",navStats:"Stats",export:"Exporter",import:"Importer",byType:"Par type",byStatus:"Par statut",top5:"Top 5",scoreDist:"Distribution",dragHint:"⠿ Glisser pour réordonner"},
+  ja:{sub:"Murat's Movie Database",addBtn:"+ 追加",addFilm:"+ 映画",addDizi:"+ ドラマ",addAnime:"+ アニメ",tabAll:"すべて",tabFilm:"映画",tabDizi:"ドラマ",tabAnime:"アニメ",stTotal:"合計",stAvg:"平均",stFav:"お気に入り",stWatched:"視聴済み",ph:"検索...",minSc:"最低評価:",sDD:"追加↓",sDA:"追加↑",sAZ:"A→Z",sZA:"Z→A",sRD:"評価↓",sRA:"評価↑",fAll:"すべて",fWatched:"視聴済み",fWatching:"視聴中",fList:"ウォッチリスト",fFav:"お気に入り",mTitle:"追加",mTitleEdit:"編集",lType:"種類",oFilm:"映画",oDizi:"ドラマ",lName:"タイトル",lYear:"年",lStatus:"状態",oWatched:"視聴済み",oWatching:"視聴中",oList:"ウォッチリスト",lRating:"評価(0–10)",hint:"1クリック=整数・2=半分",lNote:"メモ",notePh:"メモ...",cancel:"キャンセル",add:"追加",save:"保存",empty:"結果なし",sW:"視聴済み",sWi:"視聴中",sL:"ウォッチリスト",badge:{film:"映画",dizi:"ドラマ",anime:"アニメ"},cTitle:"削除しますか？",cBody:'「{name}」を削除',cDel:"削除",cKeep:"キャンセル",navList:"リスト",navStats:"統計",export:"出力",import:"入力",byType:"種類別",byStatus:"状態別",top5:"トップ5",scoreDist:"評価分布",dragHint:"⠿ ドラッグで並べ替え"}
+};
+let lang="tr",items=[],activeTab="hepsi",filter="tumu",favOnly=false,scoreMin=0,nextId=1,addedCounter=1;
+const lastClick={};let dragSrcId=null;
+
+function save(){try{localStorage.setItem("mmdb_v1",JSON.stringify({items,nextId,addedCounter}));}catch(e){}}
+function load(){
+  try{const r=localStorage.getItem("mmdb_v1");if(r){const d=JSON.parse(r);items=d.items||[];nextId=d.nextId||items.length+1;addedCounter=d.addedCounter||items.length+1;return;}}catch(e){}
+  items=[{id:1,name:"Interstellar",type:"film",year:2014,status:"izlendi",rating:9.5,note:"Muhteşem bir yolculuk",fav:true,addedAt:1},{id:2,name:"The Dark Knight",type:"film",year:2008,status:"izlendi",rating:10,note:"",fav:true,addedAt:2},{id:3,name:"Breaking Bad",type:"dizi",year:2008,status:"izlendi",rating:10,note:"Tüm zamanların en iyisi",fav:true,addedAt:3},{id:4,name:"Attack on Titan",type:"anime",year:2013,status:"izlendi",rating:9.5,note:"",fav:false,addedAt:4},{id:5,name:"Dune: Part Two",type:"film",year:2024,status:"izleniyor",rating:8,note:"",fav:false,addedAt:5},{id:6,name:"Frieren",type:"anime",year:2023,status:"liste",rating:0,note:"",fav:false,addedAt:6},{id:7,name:"Succession",type:"dizi",year:2018,status:"izlendi",rating:9,note:"",fav:false,addedAt:7}];
+  nextId=8;addedCounter=8;save();
+}
+function exportData(){const b=new Blob([JSON.stringify({items,nextId,addedCounter},null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="mmdb_yedek.json";a.click();}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.items){items=d.items;nextId=d.nextId||items.length+1;addedCounter=d.addedCounter||items.length+1;save();render();renderStats();}}catch(err){alert("Geçersiz dosya");}};r.readAsText(f);e.target.value="";}
+let currentNav="list";
+function setNavTab(tab,btn){currentNav=tab;document.querySelectorAll(".nav-tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.getElementById("list-page").style.display=tab==="list"?"block":"none";document.getElementById("stats-page").style.display=tab==="stats"?"block":"none";if(tab==="stats")renderStats();}
+function setLang(l){lang=l;document.getElementById("lang-select").value=l;applyLang();render();}
+function applyLang(){
+  const t=T[lang];
+  document.getElementById("brand-sub").textContent=t.sub;
+  document.getElementById("search").placeholder=t.ph;
+  document.getElementById("lbl-minscore").textContent=t.minSc;
+  document.getElementById("modal-title").textContent=editingId?t.mTitleEdit:t.mTitle;
+  document.getElementById("lbl-type").textContent=t.lType;
+  document.getElementById("opt-film").textContent=t.oFilm;
+  document.getElementById("opt-dizi").textContent=t.oDizi;
+  document.getElementById("lbl-name").textContent=t.lName;
+  document.getElementById("f-name").placeholder=t.lName;
+  document.getElementById("lbl-year").textContent=t.lYear;
+  document.getElementById("lbl-status").textContent=t.lStatus;
+  document.getElementById("opt-watched").textContent=t.oWatched;
+  document.getElementById("opt-watching").textContent=t.oWatching;
+  document.getElementById("opt-watchlist").textContent=t.oList;
+  document.getElementById("lbl-rating").textContent=t.lRating;
+  document.getElementById("lbl-hint").textContent=t.hint;
+  document.getElementById("lbl-note").textContent=t.lNote;
+  document.getElementById("f-note").placeholder=t.notePh;
+  document.getElementById("btn-cancel").textContent=t.cancel;
+  document.getElementById("btn-add").textContent=editingId?t.save:t.add;
+  document.getElementById("lbl-export").textContent=t.export;
+  document.getElementById("lbl-import").textContent=t.import;
+  document.getElementById("lbl-navlist").textContent=t.navList;
+  document.getElementById("lbl-navstats").textContent=t.navStats;
+  document.getElementById("drag-hint").textContent=t.dragHint;
+  document.getElementById("lbl-bytype").textContent=t.byType;
+  document.getElementById("lbl-bystatus").textContent=t.byStatus;
+  document.getElementById("lbl-top5").textContent=t.top5;
+  document.getElementById("lbl-scoredist").textContent=t.scoreDist;
+  ["hepsi","film","dizi","anime"].forEach((k,i)=>{const el=document.getElementById("tab-"+k);const cnt=el.querySelector(".tab-count").outerHTML;el.innerHTML=[t.tabAll,t.tabFilm,t.tabDizi,t.tabAnime][i]+" "+cnt;});
+  const sel=document.getElementById("sort-select");const cur=sel.value;
+  sel.innerHTML=[["date-desc",t.sDD],["date-asc",t.sDA],["alpha-asc",t.sAZ],["alpha-desc",t.sZA],["rating-desc",t.sRD],["rating-asc",t.sRA]].map(([v,l])=>`<option value="${v}">${l}</option>`).join("");
+  sel.value=cur||"date-desc";
+  document.getElementById("add-btn").textContent={hepsi:t.addBtn,film:t.addFilm,dizi:t.addDizi,anime:t.addAnime}[activeTab];
+  rebuildFilterBar();
+}
+function rebuildFilterBar(){
+  const t=T[lang];
+  document.getElementById("filter-bar").innerHTML=`
+    <button class="filter-btn ${filter==="tumu"?"active":""}" onclick="setFilter('tumu',this)">${t.fAll}</button>
+    <button class="filter-btn ${filter==="izlendi"?"active":""}" onclick="setFilter('izlendi',this)">${t.fWatched}</button>
+    <button class="filter-btn ${filter==="izleniyor"?"active":""}" onclick="setFilter('izleniyor',this)">${t.fWatching}</button>
+    <button class="filter-btn ${filter==="liste"?"active":""}" onclick="setFilter('liste',this)">${t.fList}</button>
+    <button class="fav-filter ${favOnly?"active":""}" onclick="toggleFavFilter()">
+      <svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="${HEART_ON}"/></svg>
+      ${t.fFav}</button>`;
+}
+function setTab(t,btn){activeTab=t;filter="tumu";document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");rebuildFilterBar();document.getElementById("add-btn").textContent={hepsi:T[lang].addBtn,film:T[lang].addFilm,dizi:T[lang].addDizi,anime:T[lang].addAnime}[t];render();}
+function setFilter(f,btn){filter=f;document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");render();}
+function toggleFavFilter(){favOnly=!favOnly;rebuildFilterBar();render();}
+function onScoreFilter(){scoreMin=parseFloat(document.getElementById("score-min").value);document.getElementById("score-min-val").textContent=scoreMin>0?scoreMin.toFixed(1):"—";document.getElementById("score-clear").style.display=scoreMin>0?"inline":"none";render();}
+function clearScoreFilter(){scoreMin=0;document.getElementById("score-min").value=0;document.getElementById("score-min-val").textContent="—";document.getElementById("score-clear").style.display="none";render();}
+function openAddModal(){editingId=null;const tf=document.getElementById("type-field");if(activeTab!=="hepsi"){document.getElementById("f-type").value=activeTab;tf.style.display="none";}else{tf.style.display="block";}["f-name","f-year","f-note"].forEach(id=>document.getElementById(id).value="");document.getElementById("f-status").value="izlendi";document.getElementById("f-rating").value=0;document.getElementById("f-rv").textContent="0.0";document.getElementById("modal-title").textContent=T[lang].mTitle;document.getElementById("btn-add").textContent=T[lang].add;document.getElementById("modal").classList.add("open");document.getElementById("f-name").focus();}
+function openEditModal(id){const item=items.find(i=>i.id===id);if(!item)return;editingId=id;document.getElementById("type-field").style.display="block";document.getElementById("f-type").value=item.type;document.getElementById("f-name").value=item.name;document.getElementById("f-year").value=item.year||"";document.getElementById("f-status").value=item.status;document.getElementById("f-rating").value=item.rating;document.getElementById("f-rv").textContent=item.rating.toFixed(1);document.getElementById("f-note").value=item.note||"";document.getElementById("modal-title").textContent=T[lang].mTitleEdit;document.getElementById("btn-add").textContent=T[lang].save;document.getElementById("modal").classList.add("open");document.getElementById("f-name").focus();}
+function closeModal(){document.getElementById("modal").classList.remove("open");editingId=null;}
+function saveModal(){const name=document.getElementById("f-name").value.trim();if(!name)return;const type=document.getElementById("f-type").value;const year=document.getElementById("f-year").value||"";const status=document.getElementById("f-status").value;const rating=parseFloat(document.getElementById("f-rating").value)||0;const note=document.getElementById("f-note").value.trim();if(editingId){const item=items.find(i=>i.id===editingId);if(item)Object.assign(item,{name,type,year,status,rating,note});}else{items.unshift({id:nextId++,name,type,year,status,rating,note,fav:false,addedAt:addedCounter++});}save();closeModal();render();}
+function askDelete(id){const item=items.find(i=>i.id===id);if(!item)return;pendingDeleteId=id;const t=T[lang];document.getElementById("confirm-title").textContent=t.cTitle;document.getElementById("confirm-body").innerHTML=t.cBody.replace("{name}",`<strong>${item.name}</strong>`);document.getElementById("btn-del-ok").textContent=t.cDel;document.getElementById("btn-keep").textContent=t.cKeep;document.getElementById("confirm-modal").classList.add("open");}
+function closeConfirm(){pendingDeleteId=null;document.getElementById("confirm-modal").classList.remove("open");}
+function confirmDelete(){if(pendingDeleteId!==null){items=items.filter(i=>i.id!==pendingDeleteId);pendingDeleteId=null;save();}document.getElementById("confirm-modal").classList.remove("open");render();}
+function handleStarClick(itemId,si){const item=items.find(i=>i.id===itemId);if(!item)return;const now=Date.now();if(!lastClick[itemId])lastClick[itemId]={};const prev=lastClick[itemId][si]||0;const dbl=(now-prev)<400;lastClick[itemId][si]=now;const h=si-0.5,f=si;item.rating=dbl?(item.rating===h?0:h):(item.rating===f?0:f);save();render();}
+function toggleFav(id){const i=items.find(x=>x.id===id);if(i){i.fav=!i.fav;save();render();}}
+function getSorted(arr){const s=document.getElementById("sort-select").value;return[...arr].sort((a,b)=>{if(s==="date-desc")return b.addedAt-a.addedAt;if(s==="date-asc")return a.addedAt-b.addedAt;if(s==="alpha-asc")return a.name.localeCompare(b.name,lang);if(s==="alpha-desc")return b.name.localeCompare(a.name,lang);if(s==="rating-desc")return b.rating-a.rating;if(s==="rating-asc")return a.rating-b.rating;return 0;});}
+function starSVG(state,uid){if(state==="full")return`<svg viewBox="0 0 20 20"><polygon points="10,1 12.9,7 19.5,7.6 14.5,12 16.2,18.5 10,15 3.8,18.5 5.5,12 0.5,7.6 7.1,7" fill="${TEAL}" stroke="${TEAL}" stroke-width="0.5"/></svg>`;if(state==="half")return`<svg viewBox="0 0 20 20"><defs><linearGradient id="${uid}" x1="0" x2="1"><stop offset="50%" stop-color="${TEAL}"/><stop offset="50%" stop-color="${TEMPTY}"/></linearGradient></defs><polygon points="10,1 12.9,7 19.5,7.6 14.5,12 16.2,18.5 10,15 3.8,18.5 5.5,12 0.5,7.6 7.1,7" fill="url(#${uid})" stroke="${TEAL}" stroke-width="0.5"/></svg>`;return`<svg viewBox="0 0 20 20"><polygon points="10,1 12.9,7 19.5,7.6 14.5,12 16.2,18.5 10,15 3.8,18.5 5.5,12 0.5,7.6 7.1,7" fill="${TEMPTY}" stroke="${TEMPTY}" stroke-width="0.5"/></svg>`;}
+function renderStars(score,itemId){let r1="",r2="";for(let i=1;i<=10;i++){const state=score>=i?"full":(score>=(i-0.5)?"half":"empty");const b=`<button class="star-btn" onclick="handleStarClick(${itemId},${i})">${starSVG(state,"sg"+itemId+"x"+i)}</button>`;if(i<=5)r1+=b;else r2+=b;}return`<div class="star-block"><div class="star-row">${r1}</div><div class="star-row">${r2}</div><span class="score-num">${score>0?score.toFixed(1):"—"}</span></div>`;}
+function heartSVG(on){const f=on?HEART_ON:"none",s=on?HEART_ON:HEART_OFF;return`<svg width="17" height="17" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="${f}" stroke="${s}" stroke-width="2"/></svg>`;}
+function trashSVG(){return`<svg class="trash-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#554444" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;}
+function sClass(s){return s==="izlendi"?"s-izlendi":s==="izleniyor"?"s-izleniyor":"s-liste";}
+function sLabel(s){const t=T[lang];return s==="izlendi"?t.sW:s==="izleniyor"?t.sWi:t.sL;}
+function setupDrag(){
+  document.querySelectorAll(".card[data-id]").forEach(card=>{
+    card.addEventListener("dragstart",e=>{dragSrcId=parseInt(card.dataset.id);card.classList.add("dragging");e.dataTransfer.effectAllowed="move";});
+    card.addEventListener("dragend",()=>{card.classList.remove("dragging");document.querySelectorAll(".card").forEach(c=>c.classList.remove("drag-over"));});
+    card.addEventListener("dragover",e=>{e.preventDefault();card.classList.add("drag-over");});
+    card.addEventListener("dragleave",()=>card.classList.remove("drag-over"));
+    card.addEventListener("drop",e=>{e.preventDefault();card.classList.remove("drag-over");const dstId=parseInt(card.dataset.id);if(dragSrcId===dstId)return;const si=items.findIndex(i=>i.id===dragSrcId);const di=items.findIndex(i=>i.id===dstId);if(si<0||di<0)return;const[m]=items.splice(si,1);items.splice(di,0,m);save();render();});
+    card.addEventListener("dblclick",()=>openEditModal(parseInt(card.dataset.id)));
+  });
+}
+function render(){
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const src=activeTab==="hepsi"?items:items.filter(i=>i.type===activeTab);
+  let list=src.filter(i=>{if(q&&!i.name.toLowerCase().includes(q)&&!(i.note&&i.note.toLowerCase().includes(q)))return false;if(favOnly&&!i.fav)return false;if(scoreMin>0&&i.rating<scoreMin)return false;if(filter==="tumu")return true;return i.status===filter;});
+  list=getSorted(list);
+  ["hepsi","film","dizi","anime"].forEach(k=>{const el=document.getElementById("tc-"+k);if(el)el.textContent={hepsi:items.length,film:items.filter(i=>i.type==="film").length,dizi:items.filter(i=>i.type==="dizi").length,anime:items.filter(i=>i.type==="anime").length}[k];});
+  const t=T[lang];
+  const scope=activeTab==="hepsi"?items:items.filter(i=>i.type===activeTab);
+  const rated=scope.filter(i=>i.rating>0);
+  const avg=rated.length?(rated.reduce((s,i)=>s+i.rating,0)/rated.length).toFixed(1):"—";
+  document.getElementById("stats-row").innerHTML=[[t.stTotal,scope.length],[t.stAvg,avg],[t.stFav,scope.filter(i=>i.fav).length],[t.stWatched,scope.filter(i=>i.status==="izlendi").length]].map(([l,v])=>`<div class="stat-card"><div class="stat-label">${l}</div><div class="stat-val">${v}</div></div>`).join("");
+  const cardEl=document.getElementById("card-list");
+  if(!list.length){cardEl.innerHTML=`<div class="empty">${t.empty}</div>`;return;}
+  const bClass={film:"badge-film",dizi:"badge-dizi",anime:"badge-anime"};
+  cardEl.innerHTML=list.map(item=>`
+    <div class="card ${item.fav?"fav-card":""}" data-id="${item.id}" draggable="true">
+      <span class="c-drag">⠿</span>
+      <div class="c-badge"><span class="type-badge ${bClass[item.type]}">${t.badge[item.type]}</span></div>
+      <div class="c-info"><div class="card-name">${item.name}</div><div class="card-sub">${[item.year,item.note].filter(Boolean).join(" · ")||"&nbsp;"}</div></div>
+      <div class="c-stars">${renderStars(item.rating,item.id)}</div>
+      <div class="c-status"><span class="status-badge ${sClass(item.status)}">${sLabel(item.status)}</span></div>
+      <div class="c-fav"><button class="fav-btn" onclick="toggleFav(${item.id})">${heartSVG(item.fav)}</button></div>
+      <div class="c-del"><button class="del-btn" onclick="askDelete(${item.id})">${trashSVG()}</button></div>
+    </div>`).join("");
+  setupDrag();
+}
+function barChart(data,colors){const max=Math.max(...data.map(d=>d.v),1);return data.map((d,i)=>`<div class="bar-row"><span class="bar-label">${d.l}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(d.v/max*100)}%;background:${colors[i%colors.length]};"></div></div><span class="bar-val">${d.v}</span></div>`).join("");}
+function renderStats(){
+  const t=T[lang];
+  document.getElementById("chart-type").innerHTML=barChart([{l:t.badge.film,v:items.filter(i=>i.type==="film").length},{l:t.badge.dizi,v:items.filter(i=>i.type==="dizi").length},{l:"anime",v:items.filter(i=>i.type==="anime").length}],["#1D9E75","#5DCAA5","#9F77DD"]);
+  document.getElementById("chart-status").innerHTML=barChart([{l:t.sW,v:items.filter(i=>i.status==="izlendi").length},{l:t.sWi,v:items.filter(i=>i.status==="izleniyor").length},{l:t.sL,v:items.filter(i=>i.status==="liste").length}],["#1D9E75","#5DCAA5","#444"]);
+  const top5=[...items].filter(i=>i.rating>0).sort((a,b)=>b.rating-a.rating).slice(0,5);
+  document.getElementById("chart-top5").innerHTML=top5.length?top5.map((item,i)=>`<div class="top-item"><span class="top-rank">${i+1}</span><span class="top-name">${item.name}</span><span class="top-score">${item.rating.toFixed(1)}</span></div>`).join(""):`<div style="color:#444;font-size:13px;">—</div>`;
+  document.getElementById("chart-scoredist").innerHTML=barChart([[0,2],[2,4],[4,6],[6,8],[8,10]].map(([a,b])=>({l:`${a}–${b}`,v:items.filter(i=>i.rating>a&&i.rating<=b).length})),["#1D9E75","#1D9E75","#1D9E75","#1D9E75","#1D9E75"]);
+}
+load();applyLang();render();
+document.getElementById("modal").addEventListener("click",e=>{if(e.target===document.getElementById("modal"))closeModal();});
+document.getElementById("confirm-modal").addEventListener("click",e=>{if(e.target===document.getElementById("confirm-modal"))closeConfirm();});
+</script>
+</body>
+</html>
