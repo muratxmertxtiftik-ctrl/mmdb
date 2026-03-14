@@ -1,0 +1,17 @@
+{
+  "name": "MMDB",
+  "short_name": "MMDB",
+  "description": "Murat's Movie Database",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#1D9E75",
+  "icons": [
+    {
+      "src": "mmdb_icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
